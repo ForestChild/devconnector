@@ -260,23 +260,45 @@ router.delete(
 	"/education/:edu_id",
 	passport.authenticate("jwt", { session: false }),
 	(req, res) => {
+		const errors = {};
 		Profile.findOne({ user: req.user.id })
 			.then(profile => {
-				//Get remove index
-				//const removeIndex = profile.education
-				//.map(item => item.id)
-				//.indexOf(req.params.edu_id);
-				//create new array excluding the education item that we want to delete
-				const updatedExperience = profile.experience.filter(
-					experience => !(experience.id === req.params.exp_id)
-				);
+				//Map the education array to its element ids and make sure the given id exists
+				checkIds = profile.education.map(item => item.id);
+				if (!checkIds.includes(req.params.edu_id)) {
+                	errors.noeducation = "The profile item you are trying to delete doesn't exist.";
+                	return res.status(404).json(errors);
+            	};
 
-				profile.experience = updatedExperience;
+            	//Create an updated array which excludes the item that we dont want
+            	//Note that if you use indexOf and splice to accomplish this task then 
+            	//if an incorrect id is provided via postman then indexOf will return
+            	//a value of -1, which will cause splice to remove the wrong item.
+				const updatedEducation = profile.education.filter(
+					education => !(education.id === req.params.edu_id)
+				);
+				//Update education array
+				profile.education = updatedEducation;
 				//Save
 				profile.save().then(profile => res.json(profile));
 			})
 			.catch(err => res.status(404).json(err));
 	}
 );
+
+//@route /api/profile
+//@desc Delete user and profile
+//@access private
+router.delete(
+"/",
+passport.authenticate("jwt", {session: false}),
+(req, res) => {
+	Profile.findOneAndRemove({user: req.user.id}).then(() => {
+		User.findOneAndRemove({_id: req.user.id}).then(() => 
+			res.json({success: true})
+		);
+	});
+}
+)
 
 module.exports = router;
