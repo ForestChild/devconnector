@@ -53,6 +53,31 @@ export const setCurrentUser = (decoded) => {
 	}
 }
 
+//Get logged in user (used in onSubmit of edit/create profile
+// in order to sync user with backend.)
+export const getCurrentUser = () => dispatch => {
+	axios
+	.get("/api/users/current")
+	.then(res => {
+		const { token } = res.data;
+		//Set token to local storage
+		localStorage.setItem('jwtToken', token);
+		//Set token to auth header
+		setAuthToken(token);
+		//Decode token to get user data
+		const decoded = jwt_decode(token);
+		//Set current user
+		dispatch(setCurrentUser(decoded));
+		// dispatch({
+		// 	type: GET_CURRENT_USER,
+		// 	payload: res.data
+		// });
+		// console.log("res");
+		// console.log(res);
+	})
+
+}
+
 //Log out user
 export const logoutUser = () => dispatch => {
 	//Remove token from local storage

@@ -12,6 +12,7 @@ class ProfileGithub extends Component {
 			sort: "created: asc",
 			repos: []
 		}
+		this.myRef = React.createRef();
 	}
 	componentDidMount() {
     const { username } = this.props;
@@ -20,9 +21,8 @@ class ProfileGithub extends Component {
     fetch(`/api/profile/github/${username}/${count}/${sort}`)
       .then(res => res.json())
       .then(data => {
-        if (this.refs.myRef) {
+        if (this.myRef.current) {
           this.setState({ data });
-          console.log(data)
         }
       })
       .catch(err => console.log(err));
@@ -47,13 +47,17 @@ class ProfileGithub extends Component {
             </div>
             <div className="col-md-6">
               
-                Stars: {repo.stargazers_count}
-              
-              
-                Watchers: {repo.watchers_count}
-              
-              
-                Forks: {repo.forks_count}
+              	<span className="badge badge-info mr-1">
+                Stars: { repo.stargazers_count}
+              	</span>
+              	
+              	<span className="badge badge-secondary mr-1">
+                Watchers: { repo.watchers_count}
+              	</span>
+              	
+              	<span className="badge badge-success">
+                Forks: { repo.forks_count}
+                </span>
               
             </div>
           </div>
@@ -62,7 +66,7 @@ class ProfileGithub extends Component {
     }
  
     return (
-      <div ref="myRef">
+      <div ref={this.myRef}>
         <hr />
         <h3 className="mb-4">Latest Github Repos</h3>
         {repoItens ? repoItens : undefined}

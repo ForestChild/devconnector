@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate");
 const Schema = mongoose.Schema;
 
 //Create Schema
@@ -9,7 +10,7 @@ const ProfileSchema = new Schema({
 	},
 	handle: {
 		type: String,
-		require: true,
+		required: true,
 		max: 40
 	},
 	company: {
@@ -23,7 +24,7 @@ const ProfileSchema = new Schema({
 	},
 	status: {
 		type: String,
-		require: true
+		required: true
 	},
 	skills: {
 		type: [String],
@@ -117,4 +118,5 @@ const ProfileSchema = new Schema({
 	}
 });
 
+ProfileSchema.plugin(mongoosePaginate);
 module.exports = Profile = mongoose.model("profile", ProfileSchema);

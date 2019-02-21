@@ -9,6 +9,9 @@ const Post = require("../../models/Post");
 //profile model
 const Profile = require("../../models/Profile");
 
+//User model
+const User = require("../../models/User");
+
 //Validation
 const validatePostInput = require("../../validation/post");
 
@@ -32,7 +35,34 @@ router.get("/", (req, res) => {
 //@access 	Public
 router.get("/:id", (req, res) => {
 	Post.findById(req.params.id)
-		.then(post => res.json(post))
+		.then(post => {
+			//loop through comments
+			if(post.comments.length > 0) {
+				let numRunningQueries = 0;
+				post.comments.forEach(comment => {
+					// let index = post.comments.findIndex(commentChecker => {
+					// 	return commentChecker._id === comment._id
+					// })
+					++numRunningQueries;
+					//find the profile of each comment
+					Profile.findOne({user: comment.user })
+					.then(profile => {
+						if(profile) {
+							//Post.update({ _id: req.params.id }, {$set: {"comment.usersHandle": profile.handle}})//.then(post => post.save());
+							comment.usersProfileHandle = profile.handle;
+							--numRunningQueries;
+						} else {--numRunningQueries}
+						// if(index === (post.comments.length - 1) && post.comments.length > 0) {
+						// 	post.save();
+						// }
+						if(numRunningQueries === 0) {
+							post.save();
+							res.json(post);
+						}
+					})
+				})
+			} else { res.json(post) }
+			})
 		.catch(err =>
 			res.status(404).json({ nopostfound: "No post found with that ID" })
 		);
@@ -46,7 +76,6 @@ router.post(
 	passport.authenticate("jwt", { session: false }),
 	(req, res) => {
 		const { errors, isValid } = validatePostInput(req.body);
-
 		//check validation
 		if (!isValid) {
 			//if any errors send 400 with errors object
@@ -56,9 +85,10 @@ router.post(
 			text: req.body.text,
 			name: req.body.name,
 			avatar: req.body.avatar,
-			user: req.user.id
+			user: req.user.id,
+			creatorHasProfile: req.body.creatorHasProfile,
+			usersProfileHandle: req.body.usersProfileHandle
 		});
-
 		newPost.save().then(post => res.json(post));
 	}
 );
@@ -141,7 +171,8 @@ router.post(
 					text: req.body.text,
 					name: req.body.name,
 					avatar: req.body.avatar,
-					user: req.user.id
+					user: req.user.id,
+					usersProfileHandle: req.body.usersProfileHandle
 				};
 
 				//Add to comments array
@@ -230,7 +261,7 @@ router.delete(
 				if (updatedComments.length === post.comments.length) {
 					return res.status(401).json({
 						notauthorized:
-							"If you're seeing this that means either of three things \n 1. You used postman or some other tool to send this request to delete someone else's comment \n 2. You changed the JavaScript on the front-end to send this request \n 3. You made your own script to make the requst."
+							"If you're seeing this that means either of three things \n 1. You used postman or some other tool to send this request to delete someone else's comment \n 2. You changed the JavaScript on the front-end to send this request \n 3. You made your own script to make the request."
 					});
 				}
 				// Update comments
@@ -247,27 +278,27 @@ router.delete(
 //@route 	DELETE api/posts/:id
 //@desc 	Delete post
 //@access 	Private
-// router.delete(
-// 	"/:id",
-// 	passport.authenticate("jwt", { session: false }),
-// 	(req, res) => {
-// 		Profile.findOne({ user: req.user.id }).then(profile => {
-// 			Post.findById(req.params.id)
-// 				.then(post => {
-// 					//check for post owner
-// 					if (post.user.toString() !== req.user.id) {
-// 						return res
-// 							.status(401)
-// 							.json({ notAuthorized: "User not authorized" });
-// 					}
-// 					//Delete
-// 					post.remove().then(() => res.json({ success: true }));
-// 				})
-// 				.catch(err =>
-// 					res.status(404).json({ postnotfound: "No post found" })
-// 				);
-// 		});
-// 	}
-// );
+router.delete(
+	"/:id",
+	passport.authenticate("jwt", { session: false }),
+	(req, res) => {
+		Profile.findOne({ user: req.user.id }).then(profile => {
+			Post.findById(req.params.id)
+				.then(post => {
+					//check for post owner
+					if (post.user.toString() !== req.user.id) {
+						return res
+							.status(401)
+							.json({ notAuthorized: "User not authorized" });
+					}
+					//Delete
+					post.remove().then(() => res.json({ success: true }));
+				})
+				.catch(err =>
+					res.status(404).json({ postnotfound: "No post found" })
+				);
+		});
+	}
+);
 
 module.exports = router;

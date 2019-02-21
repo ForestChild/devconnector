@@ -12,6 +12,8 @@ const validateEducationInput = require("../../validation/education");
 const Profile = require("../../models/Profile");
 //Load User Model
 const User = require("../../models/User");
+//Load Post Model
+const Post = require("../../models/Post");
 
 //@route 	GET api/profile/test
 //@desc 	tests profile route
@@ -46,7 +48,7 @@ router.get("/all", (req, res) => {
 	const errors = {};
 	Profile.find()
 		.populate("user", ["name", "avatar"])
-		.then(profiles => {
+		.then(profiles => { 
 			if (!profiles) {
 				errors.noprofile = "There are no profiles to display";
 				return res.status(404).json(errors);
@@ -79,7 +81,7 @@ router.get("/handle/:handle", (req, res) => {
 });
 
 //@route 	GET api/profile/user/:user_id
-//@desc 	Get user by id
+//@desc 	Get profile by user id
 //@access 	Public
 router.get("/user/:user_id", (req, res) => {
 	const errors = {};
@@ -134,63 +136,142 @@ router.post(
 			return res.status(400).json(errors);
 		}
 
+		// helper function - defined anywhere in profile.js ...
+		// function createProfileObj(sourceObj, propsArray) {
+		//   const ProfileObj = {};
+		  
+		//   propsArray.forEach(prop => {
+		//     if (sourceObj[prop]) ProfileObj[prop] = sourceObj[prop];
+		//   });
+		 
+		//   return ProfileObj;
+		// }
+
+		//const { skills, youtube, twitter, facebook, linkedin, instagram } = req.body;
+		//make unsetFields for $unset in Profile.findOneAndUpdate()
+		const unsetFields = {};
+		const profileFields = {social: {}, user: req.user.id, skills: req.body.skills.split(",")};
+			Object.keys(req.body).forEach(key => {
+				if(req.body[key] === "") {
+					unsetFields[key] = req.body[key];
+				} else if(["youtube", "twitter", "instagram", "facebook"].includes(key)) {
+					profileFields.social[key] = req.body[key];
+				} else if(key !== "skills" ) {
+					profileFields[key] = req.body[key];
+				}
+			});
+			// profileFields = {
+		 //  		...req.body,
+		 //  		user: req.user.id,
+		 //  		skills: skills.split(','),
+		 //  		social: { linkedin, instagram, youtube, twitter, facebook }
+			// };
+		
+
 		//Get Fields
-		const profileFields = {};
-		profileFields.user = req.user.id;
-		if (req.body.handle) profileFields.handle = req.body.handle;
-		if (req.body.company) profileFields.company = req.body.company;
-		if (req.body.website) profileFields.website = req.body.website;
-		if (req.body.location) profileFields.location = req.body.location;
-		if (req.body.bio) profileFields.bio = req.body.bio;
-		if (req.body.status) profileFields.status = req.body.status;
-		if (req.body.githubusername)
-			profileFields.githubusername = req.body.githubusername;
-		//Skills - split into array
-		if (typeof req.body.skills !== "undefined") {
-			profileFields.skills = req.body.skills.split(",");
-		}
-		//Social
-		profileFields.social = {};
-		if (req.body.youtube) profileFields.social.youtube = req.body.youtube;
-		if (req.body.twitter) profileFields.social.twitter = req.body.twitter;
-		if (req.body.linkedin)
-			profileFields.social.linkedin = req.body.linkedin;
-		if (req.body.facebook)
-			profileFields.social.facebook = req.body.facebook;
-		if (req.body.instagram)
-			profileFields.social.instagram = req.body.instagram;
-		if (req.body.handle) profileFields.handle = req.body.handle;
-		if (req.body.handle) profileFields.handle = req.body.handle;
+		// const profileFields = {};
+		// profileFields.user = req.user.id;
+		// console.log(req.body.bio);
+		// if (req.body.handle) profileFields.handle = req.body.handle;
+		// if (req.body.company) profileFields.company = req.body.company;
+		// if (req.body.website) profileFields.website = req.body.website;
+		// if (req.body.location) profileFields.location = req.body.location;
+		// if (req.body.bio && req.body.bio !== "") {profileFields.bio = req.body.bio; console.log("wut");} //else { profileFields.bio = undefined; console.log("fuck")}
+		// if (req.body.status) profileFields.status = req.body.status;
+		// if (req.body.githubusername)
+		// 	profileFields.githubusername = req.body.githubusername;
+		// //Skills - split into array
+		// if (typeof req.body.skills !== "undefined") {
+		// 	profileFields.skills = req.body.skills.split(",");
+		// }
+		// //Social
+		// profileFields.social = {};
+		// if (req.body.youtube) profileFields.social.youtube = req.body.youtube;
+		// if (req.body.twitter) profileFields.social.twitter = req.body.twitter;
+		// if (req.body.linkedin)
+		// 	profileFields.social.linkedin = req.body.linkedin;
+		// if (req.body.facebook)
+		// 	profileFields.social.facebook = req.body.facebook;
+		// if (req.body.instagram)
+		// 	profileFields.social.instagram = req.body.instagram;
 
-		Profile.findOne({ user: req.user.id }).then(profile => {
-			//updates profile if it already exists, otherwise creates new profile, this is two restful routes in one.
+		//Make sure profile id exists in the database (no postman spoofing)
+		Profile.findOne({ user: req.user.id })
+			.then(profile => {
+			//updates profile if it already exists, otherwise 
+			// we create a new profile, this is two restful routes in one.
 			if (profile) {
-				//update
-				Profile.findOneAndUpdate(
-					{ user: req.user.id },
-					{ $set: profileFields },
-					{ new: true }
-				).then(profile => res.json(profile));
-			} else {
-				//create
+				//Check to see if handle already exists and update
+				Profile.findOne({ handle: profileFields.handle }).then(
+					profileByHandle => {
+						//If handle is a duplicate then send error
+						if ( profileByHandle && (profileByHandle.id !== profile.id)) {
+							errors.handle = "That handle already exists. dumbass";
+							return res.status(400).json(errors);
+						} else {
+						//Update profile if handle is not a duplicate
+						Post.updateMany(
+							{ user: req.user.id },
+							{ usersProfileHandle: req.body.handle })
+						.then(posts => {
+							//Update Profile
+							Profile.findOneAndUpdate(
+							{ user: req.user.id },
+							{ $set: profileFields, $unset: unsetFields },
+							{ new: true }
+						).then(profile =>{
+							console.log(profile);
+							//Update User
+							User.findOneAndUpdate({ _id: req.user.id }, {$set: {profileHandle: req.body.handle}})
+							.then(user => {
+								return res.json(profile)})})
 
-				//Check if handle exists
+						})
+					}
+					}
+				);
+			} else {
+				//If user has not created a profile then we 
+				//check to see if handle is a duplicate, if it's 
+				//not then we create a new profile.
 				Profile.findOne({ handle: profileFields.handle }).then(
 					profile => {
 						if (profile) {
 							errors.handle = "That handle already exists.";
 							res.status(400).json(errors);
+						} else {
+						//Set user hasProfile to true
+						User.findOneAndUpdate(
+							{ _id: req.user.id },
+							{ $set: { hasProfile : true, profileHandle: req.body.handle } },
+							{ new: true })
+						.then(foundUser => {
+							//Update users posts so that post.creatorHasProfile === true
+							Post.updateMany(
+								{ user: req.user.id },
+								{ $set: { creatorHasProfile : true, usersProfileHandle: req.body.handle }}
+								).then(posts => {
+									//save profile
+									new Profile(profileFields)
+									.save()
+									.then(profile => {
+										console.log(profile);
+										return res.json(profile)});
+								})
+
+
+						}).catch(err => res.status(400).json(err)) 
 						}
-						//save profile
-						new Profile(profileFields)
-							.save()
-							.then(profile => res.json(profile));
 					}
 				);
 			}
-		});
+		}).catch(err => res.json(404).json(err));
 	}
-);
+)
+		
+	
+
+
 
 //@route 	POST api/profile/experience
 //@desc 	Add experience to profile

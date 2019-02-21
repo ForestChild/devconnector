@@ -10,7 +10,6 @@ const SelectListGroup = ({
 	onChange,
 	options
 }) => {
-	console.log(onChange);
 	const selectOptions = options.map(option => (
 		<option key={option.label} value={option.value}>
 			{option.label}

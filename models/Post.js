@@ -7,6 +7,12 @@ const PostSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "users"
 	},
+	usersProfileHandle: {
+		type: String
+	},
+	creatorHasProfile: {
+		type: Boolean
+	},
 	text: {
 		type: String,
 		required: true
@@ -30,6 +36,9 @@ const PostSchema = new Schema({
 			user: {
 				type: Schema.Types.ObjectId,
 				ref: "users"
+			},
+			usersProfileHandle: {
+				type: String
 			},
 			text: {
 				type: String,

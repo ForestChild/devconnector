@@ -19,6 +19,13 @@ const UserSchema = new Schema({
 	avatar: {
 		type: String
 	},
+	hasProfile: {
+		type: Boolean,
+		default: false
+	},
+	profileHandle: {
+		type: String
+	},
 	date: {
 		type: Date,
 		require: true,

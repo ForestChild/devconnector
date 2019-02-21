@@ -11,7 +11,6 @@ const InputGroup = ({
 	type,
 	onChange
 }) => {
-	console.log(onChange);
 	return (
 		<div className="input-group mb-3">
 			<div className="input-group-prepend">

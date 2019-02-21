@@ -80,7 +80,8 @@ router.post("/login", (req, res) => {
 				const payload = {
 					id: user.id,
 					name: user.name,
-					avatar: user.avatar
+					avatar: user.avatar,
+					hasProfile: user.hasProfile
 				}; //create jwt payload
 				//Sign Token
 				jwt.sign(
@@ -105,15 +106,35 @@ router.post("/login", (req, res) => {
 //@route 	GET api/users/current
 //@desc 	return current user
 //@access 	private
+//This is used to keep the redux store hasProfile user property
+//in sync with the backend user hasProfile property.
 router.get(
 	"/current",
 	passport.authenticate("jwt", { session: false }),
 	(req, res) => {
-		res.json({
-			id: req.user.id,
-			name: req.user.name,
-			email: req.user.email
-		});
+		User.findOne({ _id: req.user.id }).then(user => {
+		const payload = {
+					id: user.id,
+					name: user.name,
+					avatar: user.avatar,
+					hasProfile: user.hasProfile,
+					profileHandle: user.profileHandle
+				}; 
+				//create jwt payload
+				//Sign Token
+				jwt.sign(
+					payload,
+					keys.secretOrKey,
+					{ expiresIn: 36000 },
+					(err, token) => {
+						res.json({
+							success: true,
+							token: "Bearer " + token
+						});
+					}
+				)
+			}
+			)
 	}
 );
 

@@ -1,13 +1,16 @@
 import axios from "axios";
-import { logoutUser } from "./authActions";
+import { logoutUser, setCurrentUser, getCurrentUser } from "./authActions";
 import { 
 	GET_PROFILE,
 	GET_PROFILES,
 	PROFILE_LOADING,
 	GET_ERRORS,
+	CLEAR_ERRORS,
 	CLEAR_CURRENT_PROFILE,
 	SET_CURRENT_USER
 } from "./types";
+import setAuthToken from "../utils/setAuthToken";
+import jwt_decode from "jwt-decode";
 
 //Get current profile
 export const getCurrentProfile = () => dispatch => {
@@ -49,7 +52,15 @@ export const getProfileByHandle = (handle) => dispatch => {
 export const createProfile = (profileData, history) => dispatch => {
 	axios
 	.post("/api/profile", profileData)
-	.then(res => history.push("/dashboard"))
+	.then(res => {
+		dispatch({
+			type: CLEAR_ERRORS,
+			payload: {}
+		});
+		//this is to get the user from the backend after updating hasProfile
+		dispatch(getCurrentUser());
+		history.push("/dashboard")
+	})
 	.catch(err => {
 		dispatch({
 			type: GET_ERRORS,

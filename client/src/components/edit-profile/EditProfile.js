@@ -7,7 +7,7 @@ import TextAreaFieldGroup from "../common/TextAreaFieldGroup";
 import InputGroup from "../common/InputGroup";
 import SelectListGroup from "../common/SelectListGroup";
 import { createProfile, getCurrentProfile } from "../../actions/profileActions";
-import isEmpty from "../../validation/is-empty";
+import { getCurrentUser } from "../../actions/authActions";
 
 class CreateProfile extends Component {
 	constructor(props) {
@@ -148,7 +148,7 @@ class CreateProfile extends Component {
 
 	render() {
 		const { errors, displaySocialInputs } = this.state;
-
+		
 		let socialInputs;
 
 		if (displaySocialInputs) {
@@ -333,5 +333,5 @@ const mapStateToProps = state => ({
 
 export default connect(
 	mapStateToProps,
-	{ createProfile, getCurrentProfile }
+	{ createProfile, getCurrentProfile, getCurrentUser }
 )(withRouter(CreateProfile));
