@@ -174,7 +174,6 @@ router.post(
 							{ $set: profileFields, $unset: unsetFields },
 							{ new: true }
 						).then(profile =>{
-							console.log(profile);
 							//Update User
 							User.findOneAndUpdate({ _id: req.user.id }, {$set: {profileHandle: req.body.handle}})
 							.then(user => {
@@ -209,7 +208,6 @@ router.post(
 									new Profile(profileFields)
 									.save()
 									.then(profile => {
-										console.log(profile);
 										return res.json(profile)});
 								})
 
