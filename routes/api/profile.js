@@ -136,18 +136,6 @@ router.post(
 			return res.status(400).json(errors);
 		}
 
-		// helper function - defined anywhere in profile.js ...
-		// function createProfileObj(sourceObj, propsArray) {
-		//   const ProfileObj = {};
-		  
-		//   propsArray.forEach(prop => {
-		//     if (sourceObj[prop]) ProfileObj[prop] = sourceObj[prop];
-		//   });
-		 
-		//   return ProfileObj;
-		// }
-
-		//const { skills, youtube, twitter, facebook, linkedin, instagram } = req.body;
 		//make unsetFields for $unset in Profile.findOneAndUpdate()
 		const unsetFields = {};
 		const profileFields = {social: {}, user: req.user.id, skills: req.body.skills.split(",")};
@@ -160,40 +148,6 @@ router.post(
 					profileFields[key] = req.body[key];
 				}
 			});
-			// profileFields = {
-		 //  		...req.body,
-		 //  		user: req.user.id,
-		 //  		skills: skills.split(','),
-		 //  		social: { linkedin, instagram, youtube, twitter, facebook }
-			// };
-		
-
-		//Get Fields
-		// const profileFields = {};
-		// profileFields.user = req.user.id;
-		// console.log(req.body.bio);
-		// if (req.body.handle) profileFields.handle = req.body.handle;
-		// if (req.body.company) profileFields.company = req.body.company;
-		// if (req.body.website) profileFields.website = req.body.website;
-		// if (req.body.location) profileFields.location = req.body.location;
-		// if (req.body.bio && req.body.bio !== "") {profileFields.bio = req.body.bio; console.log("wut");} //else { profileFields.bio = undefined; console.log("fuck")}
-		// if (req.body.status) profileFields.status = req.body.status;
-		// if (req.body.githubusername)
-		// 	profileFields.githubusername = req.body.githubusername;
-		// //Skills - split into array
-		// if (typeof req.body.skills !== "undefined") {
-		// 	profileFields.skills = req.body.skills.split(",");
-		// }
-		// //Social
-		// profileFields.social = {};
-		// if (req.body.youtube) profileFields.social.youtube = req.body.youtube;
-		// if (req.body.twitter) profileFields.social.twitter = req.body.twitter;
-		// if (req.body.linkedin)
-		// 	profileFields.social.linkedin = req.body.linkedin;
-		// if (req.body.facebook)
-		// 	profileFields.social.facebook = req.body.facebook;
-		// if (req.body.instagram)
-		// 	profileFields.social.instagram = req.body.instagram;
 
 		//Make sure profile id exists in the database (no postman spoofing)
 		Profile.findOne({ user: req.user.id })
@@ -260,7 +214,7 @@ router.post(
 								})
 
 
-						}).catch(err => res.status(400).json(err)) 
+						}).catch(err => res.status(400).json(err));
 						}
 					}
 				);
