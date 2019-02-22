@@ -18,14 +18,14 @@ class ProfileGithub extends Component {
     const { username } = this.props;
     const { count, sort } = this.state;
  
-    // fetch(`/api/profile/github/${username}/${count}/${sort}`)
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     if (this.myRef.current) {
-    //       this.setState({ data });
-    //     }
-    //   })
-    //   .catch(err => console.log(err));
+    fetch(`/api/profile/github/${username}/${count}/${sort}`)
+      .then(res => res.json())
+      .then(data => {
+        if (this.myRef.current) {
+          this.setState({ data });
+        }
+      })
+      .catch(err => console.log(err));
   }
  
   render() {
