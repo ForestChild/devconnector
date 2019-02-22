@@ -18,22 +18,22 @@ class ProfileGithub extends Component {
     const { username } = this.props;
     const { count, sort } = this.state;
  
-    fetch(`/api/profile/github/${username}/${count}/${sort}`)
-      .then(res => res.json())
-      .then(data => {
-        if (this.myRef.current) {
-          this.setState({ data });
-        }
-      })
-      .catch(err => console.log(err));
+    // fetch(`/api/profile/github/${username}/${count}/${sort}`)
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     if (this.myRef.current) {
+    //       this.setState({ data });
+    //     }
+    //   })
+    //   .catch(err => console.log(err));
   }
  
   render() {
     const repos = this.state.data;
-    let repoItens;
+    let repoItems;
  
     if (repos) {
-      repoItens = repos.slice(0, 5).map(repo => (
+      repoItems = repos.slice(0, 5).map(repo => (
         <div key={repo.id} className="card card-body mb-2">
           <div className="row">
             <div className="col-md-6">
@@ -69,7 +69,7 @@ class ProfileGithub extends Component {
       <div ref={this.myRef}>
         <hr />
         <h3 className="mb-4">Latest Github Repos</h3>
-        {repoItens ? repoItens : undefined}
+        {repoItems ? repoItems : undefined}
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { logoutUser, setCurrentUser, getCurrentUser } from "./authActions";
 import { 
 	GET_PROFILE,
 	GET_PROFILES,
+	GET_GITHUB_REPO,
 	PROFILE_LOADING,
 	GET_ERRORS,
 	CLEAR_ERRORS,
@@ -16,6 +17,24 @@ import jwt_decode from "jwt-decode";
 export const getCurrentProfile = () => dispatch => {
 	dispatch(setProfileLoading());
 	axios.get("/api/profile")
+	.then(res =>
+		dispatch({
+			type: GET_PROFILE,
+			payload: res.data
+		})
+	)
+	.catch(err => 
+		dispatch({
+			type: GET_PROFILE,
+			payload: {}
+		})
+	)
+}
+
+//Get Github Repository
+export const getGithubRepo = (githubUserName, count, sort) => dispatch => {
+	//dispatch(setProfileLoading());
+	axios.get(`/api/profile/github/${githubUserName}/${count}/${sort}`)
 	.then(res =>
 		dispatch({
 			type: GET_PROFILE,
